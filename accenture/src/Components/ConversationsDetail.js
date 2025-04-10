@@ -1,108 +1,112 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Card, ListGroup, Spinner, Alert, Row, Col, Image } from 'react-bootstrap';
+import React, { useEffect, useState } from "react";
 
-const ConversationDetail = () => {
-  const { id } = useParams();
-  const [conversation, setConversation] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const mockTranscript = [
-    { speaker: 'User', message: 'Hi, I need help with my order.' },
-    { speaker: 'Support', message: 'Sure, can you provide your order ID?' },
-    { speaker: 'User', message: 'It’s #12345.' },
-    { speaker: 'Support', message: 'Thanks! Let me check the status for you.' },
-  ];
+const ConversationsDetail = () => {
+  const [conversations, setConversations] = useState([]);
+  const [error, setError] = useState(null);
+  const [selectedTicket, setSelectedTicket] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch('http://127.0.0.1:5000/api/conversations');
-        const data = await res.json();
-        const convo = data.find(item => item.conversation_id === id);
-        if (convo) {
-          setConversation(convo);
-        } else {
-          setError('Conversation not found.');
+    fetch("http://localhost:5000/api/conversations")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Network response was not ok");
         }
-      } catch (err) {
-        setError('Failed to fetch conversation data.');
-      } finally {
-        setLoading(false);
-      }
-    };
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Sample ticket data:", data[0]);
+        setConversations(data);
+      })
+      .catch((err) => {
+        console.error("Fetch error:", err);
+        setError("Failed to load conversations.");
+      });
+  }, []);
 
-    fetchData();
-  }, [id]);
+  const handleTicketClick = (ticket) => {
+    setSelectedTicket(ticket);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedTicket(null);
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="container"
-    >
-      <h2 className="mb-4 text-info">Conversation Detail - ID: {id}</h2>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Historical Tickets</h1>
 
-      {loading && <Spinner animation="border" />}
-      {error && <Alert variant="danger">{error}</Alert>}
+      {error && <p className="text-red-500">{error}</p>}
 
-      {conversation && (
-        <>
-          {/* 🎤 Transcript */}
-          <Card className="mb-4 shadow-sm">
-            <Card.Header className="bg-primary text-white">Conversation Transcript</Card.Header>
-            <ListGroup variant="flush">
-              {mockTranscript.map((msg, index) => (
-                <ListGroup.Item key={index}>
-                  <Row className="align-items-center">
-                    <Col xs="auto">
-                      <Image
-                        src="/default-avatar.png"
-                        alt={msg.speaker}
-                        roundedCircle
-                        width="40"
-                        height="40"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = '/default-avatar.png'; // Fallback in case image fails
-                        }}
-                      />
-                    </Col>
-                    <Col>
-                      <strong>{msg.speaker}:</strong> {msg.message}
-                    </Col>
-                  </Row>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          </Card>
+      {!error && conversations.length === 0 && <p>Loading...</p>}
 
-          {/* 🧠 Issue Analysis */}
-          <Card className="mb-4 shadow-sm">
-            <Card.Header className="bg-warning text-dark">Issue Analysis</Card.Header>
-            <ListGroup variant="flush">
-              <ListGroup.Item><strong>Issue Category:</strong> {conversation.issue_category}</ListGroup.Item>
-              <ListGroup.Item><strong>Recommended Solution:</strong> {conversation.recommended_solution}</ListGroup.Item>
-              <ListGroup.Item><strong>Assigned Team:</strong> {conversation.assigned_team}</ListGroup.Item>
-            </ListGroup>
-          </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {conversations.map((ticket, index) => (
+          <div
+            key={index}
+            className="p-4 border border-gray-300 rounded shadow-sm bg-white cursor-pointer hover:shadow-md transition duration-200"
+            onClick={() => handleTicketClick(ticket)}
+          >
+            <h3 className="font-semibold text-blue-700 mb-2 truncate">
+              Ticket ID: {ticket["Ticket ID"] || "N/A"}
+            </h3>
+            <p className="text-gray-700 mb-1 truncate">
+              <span className="font-semibold">Subject:</span>{" "}
+              {ticket[" Issue Category"] || "No Subject"}
+            </p>
+            <p className="text-gray-700 mb-1 truncate">
+              <span className="font-semibold">Status:</span>{" "}
+              {ticket[" Resolution Status"] || "Unknown"}
+            </p>
+            <p className="text-gray-700 truncate">
+              <span className="font-semibold">Date Resolved:</span>{" "}
+              {ticket[" Date of Resolution"] || "N/A"}
+            </p>
+          </div>
+        ))}
+      </div>
 
-          {/* ✅ Tips */}
-          <Card className="shadow-sm">
-            <Card.Header className="bg-success text-white">Recommended Improvements</Card.Header>
-            <ListGroup variant="flush">
-              <ListGroup.Item>✅ Confirm order status clearly and promptly.</ListGroup.Item>
-              <ListGroup.Item>✅ Always ask for user credentials early.</ListGroup.Item>
-              <ListGroup.Item>✅ Avoid jargon or complex language in replies.</ListGroup.Item>
-            </ListGroup>
-          </Card>
-        </>
+      {selectedTicket && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">
+              Ticket Details: {selectedTicket["Ticket ID"] || "N/A"}
+            </h2>
+            <p className="mb-2">
+              <span className="font-semibold">Subject:</span>{" "}
+              {selectedTicket[" Issue Category"] || "No Subject"}
+            </p>
+            <p className="mb-2">
+              <span className="font-semibold">Status:</span>{" "}
+              {selectedTicket[" Resolution Status"] || "Unknown"}
+            </p>
+            <p className="mb-2">
+              <span className="font-semibold">Date Resolved:</span>{" "}
+              {selectedTicket[" Date of Resolution"] || "N/A"}
+            </p>
+            <p className="mb-2">
+              <span className="font-semibold">Priority:</span>{" "}
+              {selectedTicket[" Priority"] || "N/A"}
+            </p>
+            <p className="mb-2">
+              <span className="font-semibold">Sentiment:</span>{" "}
+              {selectedTicket[" Sentiment"] || "N/A"}
+            </p>
+            <p className="mb-2">
+              <span className="font-semibold">Solution:</span>{" "}
+              {selectedTicket[" Solution"] || "N/A"}
+            </p>
+            {/* Add other details you want to display here */}
+            <button
+              onClick={handleCloseModal}
+              className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
-export default ConversationDetail;
+export default ConversationsDetail;

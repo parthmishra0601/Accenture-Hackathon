@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'; // ⬅️ Added useNavigate
+import React, { useState, useEffect } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Home, UploadCloud, Users, Menu, X,
@@ -9,13 +9,28 @@ import { Image } from 'react-bootstrap';
 
 const SidebarLayout = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // ⬅️ Hook to navigate programmatically
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(true);
+  const [loggedInUser, setLoggedInUser] = useState(null); // State to store logged-in user info
+
+  useEffect(() => {
+    // 1. Retrieve user info from localStorage
+    const storedUser = localStorage.getItem('user'); // Or whatever key you used
+
+    if (storedUser) {
+      setLoggedInUser(JSON.parse(storedUser));
+    }
+
+    // 2. (Optional) Redirect to login if no user is found
+    if (!storedUser) {
+      navigate('/login'); // Ensure user is logged in
+    }
+  }, [navigate]);  // Add navigate as a dependency to useEffect
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: <Home size={18} /> },
+    { name: 'Dashboard', path: '/dashboard', icon: <Home size={18} /> },
     { name: 'Upload Conversation', path: '/upload', icon: <UploadCloud size={18} /> },
     { name: 'Conversation Details', path: '/conversation', icon: <MessageCircle size={18} /> },
     { name: 'Team Stats', path: '/team-stats', icon: <Users size={18} /> },
@@ -25,16 +40,12 @@ const SidebarLayout = () => {
 
   const secondaryItems = [
     { name: 'Settings', path: '/settings', icon: <Settings size={18} /> },
-    { name: 'Help Center', path: '/help', icon: <LifeBuoy size={18} /> },
     { name: 'Logout', path: '/logout', icon: <LogOut size={18} /> },
   ];
 
   const handleSecondaryClick = (item) => {
     if (item.name === 'Logout') {
-      // Optional: Clear auth token or user data here
-      // localStorage.removeItem('token');
-
-      // Navigate to login
+      localStorage.removeItem('user'); // Clear user data on logout
       navigate('/login');
     } else {
       navigate(item.path);
@@ -69,11 +80,18 @@ const SidebarLayout = () => {
         {/* User Profile */}
         <div className="d-flex flex-column align-items-center py-4">
           <Image
-            src="https://via.placeholder.com/80"
+            src="https://images.unsplash.com/photo-1557862921-378a7b7841c8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8cGVyc29ufGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=80&h=80&q=60"
             roundedCircle
             className="mb-2"
+            alt="User Avatar"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://via.placeholder.com/80/cccccc/808080?Text=Fallback";
+            }}
           />
-          <p className="mb-0">Hello, <strong>User</strong></p>
+          <p className="mb-0">
+            Hello, <strong>{loggedInUser ? loggedInUser.username : 'User'}</strong>
+          </p>
         </div>
 
         {/* Main Nav */}
