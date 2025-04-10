@@ -7,35 +7,19 @@ import TeamStats from './Components/TeamStats';
 import Messages from './Components/Messages';
 import Reports from './Components/Reports';
 import Settings from './Components/Settings';
-import Login from './Components/Login';
+// import Login from './Components/Login'; // Removed Login import
 import SidebarLayout from './Components/SidebarLayout'; // Make sure this exists
-import { useAuthState } from './firebase'; // Adjust the import path as needed
-
-const ProtectedRoute = ({ children }) => {
-  const [user, loading] = useAuthState();
-
-  if (loading) return <div>Loading...</div>;
-  if (!user) return <Navigate to="/login" />;
-  return children;
-};
+// import { useAuthState } from './firebase'; // No longer needed for direct protection
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        {/* Login page (no sidebar) */}
-        <Route path="/login" element={<Login />} />
-
-        {/* Protected routes with sidebar */}
+        {/* Routes with sidebar */}
         <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <SidebarLayout />
-            </ProtectedRoute>
-          }
+          path="/*"
+          element={<SidebarLayout />}
         >
-          <Route index element={<Navigate to="/dashboard" />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="upload" element={<Upload />} />
           <Route path="conversation" element={<ConversationDetail />} />
@@ -43,6 +27,8 @@ const App = () => {
           <Route path="messages" element={<Messages />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
+          {/* Redirect root to dashboard */}
+          <Route index element={<Navigate to="/dashboard" />} />
         </Route>
       </Routes>
     </Router>

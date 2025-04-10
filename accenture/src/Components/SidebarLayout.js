@@ -6,6 +6,7 @@ import {
   MessageCircle, FileText, Settings, LifeBuoy, LogOut
 } from 'lucide-react';
 import { Image } from 'react-bootstrap';
+// import fallbackAvatar from '../../assets/fallback-avatar.png'; // Removed import
 
 const SidebarLayout = () => {
   const location = useLocation();
@@ -14,18 +15,12 @@ const SidebarLayout = () => {
   const [loggedInUser, setLoggedInUser] = useState(null); // State to store logged-in user info
 
   useEffect(() => {
-    // 1. Retrieve user info from localStorage
-    const storedUser = localStorage.getItem('user'); // Or whatever key you used
-
+    const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setLoggedInUser(JSON.parse(storedUser));
     }
-
-    // 2. (Optional) Redirect to login if no user is found
-    if (!storedUser) {
-      navigate('/login'); // Ensure user is logged in
-    }
-  }, [navigate]);  // Add navigate as a dependency to useEffect
+    // Removed the redirect to /dashboard if no user
+  }, []);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -39,17 +34,12 @@ const SidebarLayout = () => {
   ];
 
   const secondaryItems = [
-    { name: 'Settings', path: '/settings', icon: <Settings size={18} /> },
-    { name: 'Logout', path: '/logout', icon: <LogOut size={18} /> },
+    { name: 'Settings', path: '/settings', icon: <Settings size={18} /> }
+    // Removed Logout item
   ];
 
   const handleSecondaryClick = (item) => {
-    if (item.name === 'Logout') {
-      localStorage.removeItem('user'); // Clear user data on logout
-      navigate('/login');
-    } else {
-      navigate(item.path);
-    }
+    navigate(item.path);
   };
 
   return (
@@ -84,10 +74,10 @@ const SidebarLayout = () => {
             roundedCircle
             className="mb-2"
             alt="User Avatar"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = "https://via.placeholder.com/80/cccccc/808080?Text=Fallback";
-            }}
+            // onError={(e) => {
+            //   e.target.onerror = null;
+            //   e.target.src = fallbackAvatar; // Removed onError handler
+            // }}
           />
           <p className="mb-0">
             Hello, <strong>{loggedInUser ? loggedInUser.username : 'User'}</strong>
