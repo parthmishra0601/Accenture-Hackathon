@@ -6,7 +6,7 @@ const ConversationsDetail = () => {
   const [selectedTicket, setSelectedTicket] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/conversations")
+    fetch("https://accenture-hackathon-11.onrender.com/api/conversations")
       .then((res) => {
         if (!res.ok) {
           throw new Error("Network response was not ok");
