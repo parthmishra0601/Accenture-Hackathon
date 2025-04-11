@@ -61,7 +61,7 @@ const Messages = () => {
     setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const response = await fetch('https://accenture-hackathon-14.onrender.com', {
+      const response = await fetch('https://accenture-hackathon-14.onrender.com/api/query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
