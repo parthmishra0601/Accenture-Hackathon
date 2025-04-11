@@ -1,112 +1,120 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 
-const ConversationsDetail = () => {
-  const [conversations, setConversations] = useState([]);
-  const [error, setError] = useState(null);
-  const [selectedTicket, setSelectedTicket] = useState(null);
+const ConversationDetails = () => {
+  const [tickets, setTickets] = useState([]);
 
   useEffect(() => {
-    fetch("https://accenture-hackathon-11.onrender.com/api/conversations")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log("Sample ticket data:", data[0]);
-        setConversations(data);
-      })
-      .catch((err) => {
-        console.error("Fetch error:", err);
-        setError("Failed to load conversations.");
-      });
+    const fetchTickets = async () => {
+      try {
+        const res = await axios.get("http://127.0.0.1:5000/api/conversations");
+        setTickets(res.data);
+      } catch (error) {
+        console.error("Error fetching conversations:", error);
+      }
+    };
+
+    fetchTickets();
   }, []);
 
-  const handleTicketClick = (ticket) => {
-    setSelectedTicket(ticket);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedTicket(null);
-  };
-
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Historical Tickets</h1>
+    <div className="bg-gray-100 p-6 rounded-md shadow-md">
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">Ticket Details</h1>
 
-      {error && <p className="text-red-500">{error}</p>}
+      {tickets.map((ticket, index) => (
+        <div
+          key={index}
+          className="bg-white shadow-sm p-4 rounded-lg mb-4 border border-gray-200 hover:shadow-lg transition"
+        >
+          <h2 className="font-semibold text-lg text-indigo-700 mb-2">
+            Ticket ID: {ticket["Ticket ID"]}
+          </h2>
 
-      {!error && conversations.length === 0 && <p>Loading...</p>}
+          <p className="text-gray-700 mb-1">
+            <strong>Date of Resolution:</strong>{" "}
+            <span className="text-gray-600">{ticket["Date of Resolution"]}</span>
+          </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {conversations.map((ticket, index) => (
-          <div
-            key={index}
-            className="p-4 border border-gray-300 rounded shadow-sm bg-white cursor-pointer hover:shadow-md transition duration-200"
-            onClick={() => handleTicketClick(ticket)}
-          >
-            <h3 className="font-semibold text-blue-700 mb-2 truncate">
-              Ticket ID: {ticket["Ticket ID"] || "N/A"}
-            </h3>
-            <p className="text-gray-700 mb-1 truncate">
-              <span className="font-semibold">Subject:</span>{" "}
-              {ticket[" Issue Category"] || "No Subject"}
-            </p>
-            <p className="text-gray-700 mb-1 truncate">
-              <span className="font-semibold">Status:</span>{" "}
-              {ticket[" Resolution Status"] || "Unknown"}
-            </p>
-            <p className="text-gray-700 truncate">
-              <span className="font-semibold">Date Resolved:</span>{" "}
-              {ticket[" Date of Resolution"] || "N/A"}
-            </p>
-          </div>
-        ))}
-      </div>
+          <p className="text-gray-700 mb-1">
+            <strong>Department:</strong>{" "}
+            <span className="inline-block px-2 py-1 rounded-full text-xs font-semibold bg-blue-200 text-blue-700">
+              {ticket["department"] || ticket["Issue Category"]}
+            </span>
+          </p>
 
-      {selectedTicket && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">
-              Ticket Details: {selectedTicket["Ticket ID"] || "N/A"}
-            </h2>
-            <p className="mb-2">
-              <span className="font-semibold">Subject:</span>{" "}
-              {selectedTicket[" Issue Category"] || "No Subject"}
-            </p>
-            <p className="mb-2">
-              <span className="font-semibold">Status:</span>{" "}
-              {selectedTicket[" Resolution Status"] || "Unknown"}
-            </p>
-            <p className="mb-2">
-              <span className="font-semibold">Date Resolved:</span>{" "}
-              {selectedTicket[" Date of Resolution"] || "N/A"}
-            </p>
-            <p className="mb-2">
-              <span className="font-semibold">Priority:</span>{" "}
-              {selectedTicket[" Priority"] || "N/A"}
-            </p>
-            <p className="mb-2">
-              <span className="font-semibold">Sentiment:</span>{" "}
-              {selectedTicket[" Sentiment"] || "N/A"}
-            </p>
-            <p className="mb-2">
-              <span className="font-semibold">Solution:</span>{" "}
-              {selectedTicket[" Solution"] || "N/A"}
-            </p>
-            {/* Add other details you want to display here */}
-            <button
-              onClick={handleCloseModal}
-              className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+          <p className="text-gray-700 mb-1">
+            <strong>Priority:</strong>{" "}
+            <span
+              className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                ticket["Priority"] === "High"
+                  ? "bg-red-300 text-red-800"
+                  : ticket["Priority"] === "Medium"
+                  ? "bg-orange-300 text-orange-800"
+                  : "bg-green-300 text-green-800"
+              }`}
             >
-              Close
-            </button>
-          </div>
+              {ticket["Priority"]}
+            </span>
+          </p>
+
+          <p className="text-gray-700 mb-1">
+            <strong>Resolution Status:</strong>{" "}
+            <span
+              className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                ticket["Resolution Status"] === "Resolved"
+                  ? "bg-green-200 text-green-700"
+                  : "bg-yellow-200 text-yellow-700"
+              }`}
+            >
+              {ticket["Resolution Status"]}
+            </span>
+          </p>
+
+          <p className="text-gray-700 mb-1">
+            <strong>Sentiment:</strong>{" "}
+            <span
+              className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                ticket["Sentiment"]?.toLowerCase() === "positive"
+                  ? "bg-green-200 text-green-700"
+                  : ticket["Sentiment"]?.toLowerCase() === "negative"
+                  ? "bg-red-200 text-red-700"
+                  : "bg-yellow-200 text-yellow-700"
+              }`}
+            >
+              {ticket["Sentiment"]}
+            </span>
+          </p>
+
+          <p className="text-gray-700 mb-1">
+            <strong>Solution:</strong>{" "}
+            <span className="text-gray-600">{ticket["Solution"]}</span>
+          </p>
+
+          <p className="text-gray-700 mb-1">
+            <strong>Assigned Team:</strong>{" "}
+            <span className="text-gray-600">{ticket["assigned_team"] || "N/A"}</span>
+          </p>
+
+          <p className="text-gray-700">
+            <strong>Customer Timestamp:</strong>{" "}
+            <span className="text-gray-600">{ticket["customer_timestamp"]}</span>
+          </p>
+        </div>
+      ))}
+
+      {tickets.length === 0 && (
+        <div
+          className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative"
+          role="alert"
+        >
+          <strong className="font-bold">No tickets found!</strong>
+          <span className="block sm:inline">
+            Check if the API is running and returning data.
+          </span>
         </div>
       )}
     </div>
   );
 };
 
-export default ConversationsDetail;
+export default ConversationDetails;
