@@ -7,7 +7,7 @@ const ConversationDetails = () => {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const res = await axios.get("https://accenture-hackathon-14.onrender.com");
+        const res = await axios.get("https://accenture-hackathon-14.onrender.com/api/conversations");
         setTickets(res.data);
       } catch (error) {
         console.error("Error fetching conversations:", error);
